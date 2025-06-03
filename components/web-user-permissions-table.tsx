@@ -18,47 +18,43 @@ import { Edit2, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import type { Agent } from "./dashboard-view"
 
-interface ChannelPermission {
+interface UserPermission {
   id: string
-  channelName: string
-  channelId: string
+  userName: string
+  userEmail: string
+  userId: string
   agent: string
   catchup: string
   scope: "Browser Web" | "Catch up" | "Look up" // Updated scope type
 }
 
-const mockChannelData: ChannelPermission[] = [
+const mockUserData: UserPermission[] = [
   {
     id: "1",
-    channelName: "#general",
-    channelId: "C012AB3CD",
-    agent: "GoTeddy",
+    userName: "Alice Wonderland",
+    userEmail: "alice@example.com",
+    userId: "U-ALC001",
+    agent: "Custom Tymee Assistant",
     catchup: "daily",
-    scope: "Browser Web", // Updated mock data
-  },
-  {
-    id: "2",
-    channelName: "#dev-team",
-    channelId: "C023BC4DE",
-    agent: "GoTeddy",
-    catchup: "hourly",
     scope: "Catch up", // Updated mock data
   },
   {
-    id: "3",
-    channelName: "#marketing-updates",
-    channelId: "C034CD5EF",
-    agent: "GoTeddy",
-    catchup: "weekly",
-    scope: "Look up", // Updated mock data
-  },
-  {
-    id: "4",
-    channelName: "#support-tickets",
-    channelId: "C045DE6FG",
-    agent: "GoTeddy",
+    id: "2",
+    userName: "Bob The Builder",
+    userEmail: "bob@example.com",
+    userId: "U-BOB002",
+    agent: "Tymee Crystal",
     catchup: "hourly",
     scope: "Browser Web", // Updated mock data
+  },
+  {
+    id: "3",
+    userName: "Charlie Brown",
+    userEmail: "charlie@example.com",
+    userId: "U-CHR003",
+    agent: "Visual UI Testing",
+    catchup: "weekly",
+    scope: "Look up", // Updated mock data
   },
 ]
 
@@ -77,27 +73,28 @@ const catchupOptions = [
 
 const ALL_AGENTS_VALUE = "__ALL_AGENTS__"
 
-interface ChannelPermissionsTableProps {
+interface WebUserPermissionsTableProps {
   agents: Agent[]
 }
 
-export function ChannelPermissionsTable({ agents }: ChannelPermissionsTableProps) {
-  const [data, setData] = useState<ChannelPermission[]>(mockChannelData)
+export function WebUserPermissionsTable({ agents }: WebUserPermissionsTableProps) {
+  const [data, setData] = useState<UserPermission[]>(mockUserData)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingPermission, setEditingPermission] = useState<ChannelPermission | null>(null)
+  const [editingPermission, setEditingPermission] = useState<UserPermission | null>(null)
   const [dialogMode, setDialogMode] = useState<"edit" | "create">("edit")
   const [selectedAgent, setSelectedAgent] = useState<string>(ALL_AGENTS_VALUE)
-  const [searchTermChannel, setSearchTermChannel] = useState("")
+  const [searchTermUser, setSearchTermUser] = useState("")
 
   const filteredData = useMemo(() => {
     return data.filter(
       (item) =>
         (selectedAgent === ALL_AGENTS_VALUE || item.agent === selectedAgent) &&
-        item.channelName.toLowerCase().includes(searchTermChannel.toLowerCase()),
+        (item.userName.toLowerCase().includes(searchTermUser.toLowerCase()) ||
+          item.userEmail.toLowerCase().includes(searchTermUser.toLowerCase())),
     )
-  }, [data, selectedAgent, searchTermChannel])
+  }, [data, selectedAgent, searchTermUser])
 
-  const handleEdit = (permission: ChannelPermission) => {
+  const handleEdit = (permission: UserPermission) => {
     setEditingPermission(permission)
     setDialogMode("edit")
     setDialogOpen(true)
@@ -109,11 +106,13 @@ export function ChannelPermissionsTable({ agents }: ChannelPermissionsTableProps
     setDialogOpen(true)
   }
 
-  const handleSave = (permissionToSave: ChannelPermission) => {
+  const handleSave = (permissionToSave: UserPermission) => {
     if (dialogMode === "edit" && editingPermission) {
       setData((prev) => prev.map((item) => (item.id === editingPermission.id ? permissionToSave : item)))
     } else {
-      setData((prev) => [...prev, { ...permissionToSave, id: Date.now().toString() }])
+      const newId = Date.now().toString()
+      const newUserId = permissionToSave.userId || `U-NEW-${newId.slice(-4)}`
+      setData((prev) => [...prev, { ...permissionToSave, id: newId, userId: newUserId }])
     }
     setDialogOpen(false)
   }
@@ -122,7 +121,7 @@ export function ChannelPermissionsTable({ agents }: ChannelPermissionsTableProps
     setData((prev) => prev.filter((item) => item.id !== id))
   }
 
-  const getScopeBadgeStyle = (scope: ChannelPermission["scope"]) => {
+  const getScopeBadgeStyle = (scope: UserPermission["scope"]) => {
     switch (scope) {
       case "Browser Web":
         return "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200"
@@ -156,24 +155,25 @@ export function ChannelPermissionsTable({ agents }: ChannelPermissionsTableProps
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search by Channel..."
-              value={searchTermChannel}
-              onChange={(e) => setSearchTermChannel(e.target.value)}
+              placeholder="Search by User..."
+              value={searchTermUser}
+              onChange={(e) => setSearchTermUser(e.target.value)}
               className="pl-8 sm:w-[200px] lg:w-[250px]"
             />
           </div>
         </div>
         <Button onClick={handleCreate} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
-          Add Channel Permission
+          Add User Permission
         </Button>
       </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Channel Name</TableHead>
-              <TableHead>Channel ID</TableHead>
+              <TableHead>User Name</TableHead>
+              <TableHead>User Email</TableHead>
+              <TableHead>User ID</TableHead>
               <TableHead>Agent</TableHead>
               <TableHead>Catchup</TableHead>
               <TableHead>Scope</TableHead>
@@ -183,8 +183,9 @@ export function ChannelPermissionsTable({ agents }: ChannelPermissionsTableProps
           <TableBody>
             {filteredData.map((item) => (
               <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.channelName}</TableCell>
-                <TableCell>{item.channelId}</TableCell>
+                <TableCell className="font-medium">{item.userName}</TableCell>
+                <TableCell>{item.userEmail}</TableCell>
+                <TableCell>{item.userId}</TableCell>
                 <TableCell>{item.agent}</TableCell>
                 <TableCell>{item.catchup}</TableCell>
                 <TableCell>
@@ -216,7 +217,7 @@ export function ChannelPermissionsTable({ agents }: ChannelPermissionsTableProps
           </TableBody>
         </Table>
       </div>
-      <ChannelPermissionDialog
+      <UserPermissionDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         permission={editingPermission}
@@ -228,32 +229,26 @@ export function ChannelPermissionsTable({ agents }: ChannelPermissionsTableProps
   )
 }
 
-interface ChannelPermissionDialogProps {
+interface UserPermissionDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  permission: ChannelPermission | null
-  onSave: (permission: ChannelPermission) => void
+  permission: UserPermission | null
+  onSave: (permission: UserPermission) => void
   mode: "edit" | "create"
   agents: Agent[]
 }
 
-function ChannelPermissionDialog({
-  open,
-  onOpenChange,
-  permission,
-  onSave,
-  mode,
-  agents,
-}: ChannelPermissionDialogProps) {
-  const initialFormData: ChannelPermission = {
-    id: "",
-    channelName: "",
-    channelId: "",
+function UserPermissionDialog({ open, onOpenChange, permission, onSave, mode, agents }: UserPermissionDialogProps) {
+  const initialFormData: Omit<UserPermission, "id"> = {
+    userName: "",
+    userEmail: "",
+    userId: "",
     agent: agents.find((agent) => agent.name.trim() !== "")?.name || "",
     catchup: "daily",
     scope: "Browser Web", // Default to new scope value
   }
-  const [formData, setFormData] = useState<ChannelPermission>(initialFormData)
+
+  const [formData, setFormData] = useState<Omit<UserPermission, "id"> & { id?: string }>(permission || initialFormData)
 
   useEffect(() => {
     if (mode === "edit" && permission) {
@@ -261,49 +256,80 @@ function ChannelPermissionDialog({
     } else if (mode === "create") {
       setFormData({
         ...initialFormData,
+        userId: "",
         agent: agents.find((agent) => agent.name.trim() !== "")?.name || "",
       })
     }
   }, [permission, mode, agents])
 
-  const handleInputChange = (field: keyof ChannelPermission, value: string) => {
+  const handleInputChange = (field: keyof Omit<UserPermission, "id">, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleSubmit = () => {
-    onSave(formData)
+    const submissionData: UserPermission = {
+      id: formData.id || Date.now().toString(),
+      userName: formData.userName,
+      userEmail: formData.userEmail,
+      userId: mode === "create" ? formData.userId || `U-NEW-${Date.now().toString().slice(-4)}` : formData.userId,
+      agent: formData.agent,
+      catchup: formData.catchup,
+      scope: formData.scope as UserPermission["scope"], // Ensure type correctness
+    }
+    onSave(submissionData)
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{mode === "edit" ? "Edit Channel Permission" : "Create Channel Permission"}</DialogTitle>
+          <DialogTitle>{mode === "edit" ? "Edit User Permission" : "Create User Permission"}</DialogTitle>
           <DialogDescription>
             {mode === "edit"
-              ? "Update the Slack channel permission details."
-              : "Fill in the details for the new Slack channel permission."}
+              ? "Update the user permission details."
+              : "Fill in the details for the new user permission."}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="channelName">Channel Name</Label>
+            <Label htmlFor="userName">User Name</Label>
             <Input
-              id="channelName"
-              value={formData.channelName}
-              onChange={(e) => handleInputChange("channelName", e.target.value)}
-              placeholder="#example-channel"
+              id="userName"
+              value={formData.userName}
+              onChange={(e) => handleInputChange("userName", e.target.value)}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="channelId">Channel ID</Label>
+            <Label htmlFor="userEmail">User Email</Label>
             <Input
-              id="channelId"
-              value={formData.channelId}
-              onChange={(e) => handleInputChange("channelId", e.target.value)}
-              placeholder="C012AB3CD"
+              id="userEmail"
+              type="email"
+              value={formData.userEmail}
+              onChange={(e) => handleInputChange("userEmail", e.target.value)}
             />
           </div>
+          {mode === "edit" && (
+            <div className="space-y-2">
+              <Label htmlFor="userId">User ID</Label>
+              <Input
+                id="userId"
+                value={formData.userId}
+                onChange={(e) => handleInputChange("userId", e.target.value)}
+                disabled // User ID is not editable after creation in this mock
+              />
+            </div>
+          )}
+          {mode === "create" && (
+            <div className="space-y-2">
+              <Label htmlFor="userId">User ID (Optional)</Label>
+              <Input
+                id="userId"
+                value={formData.userId}
+                onChange={(e) => handleInputChange("userId", e.target.value)}
+                placeholder="Auto-generated if empty"
+              />
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="agent">Agent</Label>
             <Select value={formData.agent} onValueChange={(value) => handleInputChange("agent", value)}>
@@ -340,7 +366,7 @@ function ChannelPermissionDialog({
             <Label htmlFor="scope">Scope</Label>
             <Select
               value={formData.scope}
-              onValueChange={(value) => handleInputChange("scope", value as ChannelPermission["scope"])}
+              onValueChange={(value) => handleInputChange("scope", value as UserPermission["scope"])}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select scope" />

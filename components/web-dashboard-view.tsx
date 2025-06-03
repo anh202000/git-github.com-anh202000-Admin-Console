@@ -22,7 +22,7 @@ const iconComponents: Record<string, LucideIcon> = {
   Brain,
 }
 
-export function DashboardView({ agents }: DashboardViewProps) {
+export function WebDashboardView({ agents }: DashboardViewProps) {
   const getStatusColor = (status: Agent["status"]) => {
     if (status === "active") return "bg-green-500"
     if (status === "inactive") return "bg-yellow-500"

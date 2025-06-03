@@ -1,47 +1,43 @@
 "use client"
 
-import { useState } from "react"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar" // Removed SidebarTrigger
-import { AppSidebar } from "@/components/app-sidebar"
-import { DashboardContent } from "@/components/dashboard-content"
-import type { Agent } from "./dashboard-view"
+import { AppSidebar } from "@/components/app-sidebar";
+import { DashboardContent } from "@/components/dashboard-content";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"; // Removed SidebarTrigger
+import { useState } from "react";
+import type { Agent } from "./dashboard-view";
 
-export type NavigationItem = "dashboard" | "channel-permissions" | "user-permissions" | "user-management"
+export type NavigationItem = "dashboard" | "channel-permissions" | "user-permissions" | "user-management" | "web-dashboard" | "web-user-permissions"
 
 const mockAgentsList: Agent[] = [
   {
     id: "1",
     name: "GoTeddy",
-    description: "Automated customer support agent.",
+    description: "Your AI companion that transforms how teams work by automating routine tasks and providing instant access to critical organizational knowledge.",
+    status: "active",
+    iconName: "Bot",
+  },
+]
+
+const mockWebAgentsList: Agent[] = [
+  {
+    id: "1",
+    name: "Visual UI Testing",
+    description: "Ensure pixel-perfect user interfaces with AI that automatically detects visual inconsistencies and suggests improvements.",
     status: "active",
     iconName: "Bot",
   },
   {
     id: "2",
-    name: "DataCruncher",
-    description: "Analyzes large datasets for insights.",
+    name: "Custom Tymee Assistant",
+    description: "Empower your team to create, customize, and deploy AI assistants tailored to specific workflows—no coding required.",
     status: "active",
-    iconName: "Cpu",
+    iconName: "Bot",
   },
   {
     id: "3",
-    name: "LeadGenius",
-    description: "Identifies and qualifies sales leads.",
-    status: "inactive",
-    iconName: "Zap",
-  },
-  {
-    id: "4",
-    name: "ContentSpark",
-    description: "Generates creative content ideas.",
+    name: "Tymee Crystal",
+    description: "Supercharge your development workflow with AI-powered coding assistance that understands context and accelerates delivery.",
     status: "active",
-    iconName: "Brain",
-  },
-  {
-    id: "5",
-    name: "CodeHelper",
-    description: "Assists developers with code snippets.",
-    status: "error",
     iconName: "Bot",
   },
 ]
@@ -55,7 +51,7 @@ export function DashboardLayout() {
       <SidebarInset>
         {/* Header removed */}
         <main className="flex-1">
-          <DashboardContent activeItem={activeItem} agents={mockAgentsList} />
+          <DashboardContent activeItem={activeItem} agents={mockAgentsList} webAgents={mockWebAgentsList}/>
         </main>
       </SidebarInset>
     </SidebarProvider>

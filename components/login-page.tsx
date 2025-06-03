@@ -1,38 +1,73 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useAuth } from "@/components/auth-provider"
-import { Loader2 } from "lucide-react"
+import { useAuth } from "@/components/auth-provider";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import type React from "react";
+import { useState } from "react";
 
 export function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const { login, loginWithMicrosoft, isLoading } = useAuth()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { login, loginWithMicrosoft, isLoading } = useAuth();
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await login(email, password)
-  }
+    e.preventDefault();
+    await login(email, password);
+  };
 
   const handleMicrosoftLogin = async () => {
-    await loginWithMicrosoft()
-  }
+    await loginWithMicrosoft();
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+    <div className="relative min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={toggleTheme}
+        className="absolute top-4 right-4"
+        aria-label={
+          theme === "dark" ? "Switch to light theme" : "Switch to dark theme"
+        }
+      >
+        {theme === "dark" ? (
+          <Sun className="h-4 w-4" />
+        ) : (
+          <Moon className="h-4 w-4" />
+        )}
+      </Button>
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">TymexAI Admin Console</CardTitle>
-          <CardDescription className="text-center">Sign in to access the admin dashboard</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center">
+            TymexAI Admin Console
+          </CardTitle>
+          <CardDescription className="text-center">
+            Sign in to access the admin dashboard
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button onClick={handleMicrosoftLogin} disabled={isLoading} className="w-full" variant="outline">
+          <Button
+            onClick={handleMicrosoftLogin}
+            disabled={isLoading}
+            className="w-full"
+            variant="outline"
+          >
             {isLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
@@ -51,7 +86,9 @@ export function LoginPage() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
             </div>
           </div>
 
@@ -79,12 +116,14 @@ export function LoginPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
               Sign In
             </Button>
           </form>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,11 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Edit2, Plus, MoreHorizontal, Trash2, Search } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import {
   Dialog,
   DialogContent,
@@ -14,8 +9,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Edit2, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
 import type { Agent } from "./dashboard-view"
 
 interface UserPermission {
@@ -43,7 +43,7 @@ const mockUserData: UserPermission[] = [
     userName: "Bob The Builder",
     userEmail: "bob@example.com",
     userId: "U-BOB002",
-    agent: "DataCruncher",
+    agent: "GoTeddy",
     catchup: "hourly",
     scope: "Browser Web", // Updated mock data
   },
@@ -52,7 +52,7 @@ const mockUserData: UserPermission[] = [
     userName: "Charlie Brown",
     userEmail: "charlie@example.com",
     userId: "U-CHR003",
-    agent: "LeadGenius",
+    agent: "GoTeddy",
     catchup: "weekly",
     scope: "Look up", // Updated mock data
   },
