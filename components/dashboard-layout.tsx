@@ -1,21 +1,20 @@
 "use client"
 
 import { useState } from "react"
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar" // Removed SidebarTrigger
 import { AppSidebar } from "@/components/app-sidebar"
 import { DashboardContent } from "@/components/dashboard-content"
-import type { Agent } from "./dashboard-view" // Import Agent type
+import type { Agent } from "./dashboard-view"
 
 export type NavigationItem = "dashboard" | "channel-permissions" | "user-permissions" | "user-management"
 
-// Define mockAgents here to be passed down
 const mockAgentsList: Agent[] = [
   {
     id: "1",
     name: "GoTeddy",
     description: "Automated customer support agent.",
     status: "active",
-    iconName: "Bot", // Store icon name as string
+    iconName: "Bot",
   },
   {
     id: "2",
@@ -54,14 +53,8 @@ export function DashboardLayout() {
     <SidebarProvider defaultOpen={true}>
       <AppSidebar activeItem={activeItem} onItemSelect={setActiveItem} />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold">TymexAI Admin Console</h1>
-          </div>
-        </header>
+        {/* Header removed */}
         <main className="flex-1">
-          {/* Pass mockAgentsList to DashboardContent */}
           <DashboardContent activeItem={activeItem} agents={mockAgentsList} />
         </main>
       </SidebarInset>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -25,7 +25,7 @@ interface UserPermission {
   userId: string
   agent: string
   catchup: string
-  scope: "custom" | "allowed" | "not_allowed"
+  scope: "Browser Web" | "Catch up" | "Look up" // Updated scope type
 }
 
 const mockUserData: UserPermission[] = [
@@ -36,7 +36,7 @@ const mockUserData: UserPermission[] = [
     userId: "U-ALC001",
     agent: "GoTeddy",
     catchup: "daily",
-    scope: "allowed",
+    scope: "Catch up", // Updated mock data
   },
   {
     id: "2",
@@ -45,7 +45,7 @@ const mockUserData: UserPermission[] = [
     userId: "U-BOB002",
     agent: "DataCruncher",
     catchup: "hourly",
-    scope: "custom",
+    scope: "Browser Web", // Updated mock data
   },
   {
     id: "3",
@@ -54,17 +54,24 @@ const mockUserData: UserPermission[] = [
     userId: "U-CHR003",
     agent: "LeadGenius",
     catchup: "weekly",
-    scope: "not_allowed",
+    scope: "Look up", // Updated mock data
   },
 ]
 
+// Updated scope options
 const scopeOptions = [
-  { value: "custom", label: "Custom" },
-  { value: "allowed", label: "Allowed" },
-  { value: "not_allowed", label: "Not Allowed" },
+  { value: "Browser Web", label: "Browser Web" },
+  { value: "Catch up", label: "Catch up" },
+  { value: "Look up", label: "Look up" },
 ]
 
-const ALL_AGENTS_VALUE = "__ALL_AGENTS__" // Define a constant for "All Agents"
+const catchupOptions = [
+  { value: "hourly", label: "Hourly" },
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+]
+
+const ALL_AGENTS_VALUE = "__ALL_AGENTS__"
 
 interface UserPermissionsTableProps {
   agents: Agent[]
@@ -75,7 +82,7 @@ export function UserPermissionsTable({ agents }: UserPermissionsTableProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingPermission, setEditingPermission] = useState<UserPermission | null>(null)
   const [dialogMode, setDialogMode] = useState<"edit" | "create">("edit")
-  const [selectedAgent, setSelectedAgent] = useState<string>(ALL_AGENTS_VALUE) // Default to all agents
+  const [selectedAgent, setSelectedAgent] = useState<string>(ALL_AGENTS_VALUE)
   const [searchTermUser, setSearchTermUser] = useState("")
 
   const filteredData = useMemo(() => {
@@ -103,13 +110,28 @@ export function UserPermissionsTable({ agents }: UserPermissionsTableProps) {
     if (dialogMode === "edit" && editingPermission) {
       setData((prev) => prev.map((item) => (item.id === editingPermission.id ? permissionToSave : item)))
     } else {
-      setData((prev) => [...prev, { ...permissionToSave, id: Date.now().toString() }])
+      const newId = Date.now().toString()
+      const newUserId = permissionToSave.userId || `U-NEW-${newId.slice(-4)}`
+      setData((prev) => [...prev, { ...permissionToSave, id: newId, userId: newUserId }])
     }
     setDialogOpen(false)
   }
 
   const handleDelete = (id: string) => {
     setData((prev) => prev.filter((item) => item.id !== id))
+  }
+
+  const getScopeBadgeStyle = (scope: UserPermission["scope"]) => {
+    switch (scope) {
+      case "Browser Web":
+        return "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200"
+      case "Catch up":
+        return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
+      case "Look up":
+        return "bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200"
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+    }
   }
 
   return (
@@ -167,13 +189,8 @@ export function UserPermissionsTable({ agents }: UserPermissionsTableProps) {
                 <TableCell>{item.agent}</TableCell>
                 <TableCell>{item.catchup}</TableCell>
                 <TableCell>
-                  <span
-                    className={`px-2 py-1 rounded text-xs font-medium
-                                      ${item.scope === "allowed" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : ""}
-                                      ${item.scope === "not_allowed" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" : ""}
-                                      ${item.scope === "custom" ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" : ""}`}
-                  >
-                    {scopeOptions.find((s) => s.value === item.scope)?.label}
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${getScopeBadgeStyle(item.scope)}`}>
+                    {item.scope}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -222,41 +239,44 @@ interface UserPermissionDialogProps {
 }
 
 function UserPermissionDialog({ open, onOpenChange, permission, onSave, mode, agents }: UserPermissionDialogProps) {
-  const [formData, setFormData] = useState<UserPermission>(
-    permission || {
-      id: "",
-      userName: "",
-      userEmail: "",
-      userId: "",
-      agent: agents.find((agent) => agent.name.trim() !== "")?.name || "", // Default to first valid agent or empty
-      catchup: "daily",
-      scope: "allowed",
-    },
-  )
+  const initialFormData: Omit<UserPermission, "id"> = {
+    userName: "",
+    userEmail: "",
+    userId: "",
+    agent: agents.find((agent) => agent.name.trim() !== "")?.name || "",
+    catchup: "daily",
+    scope: "Browser Web", // Default to new scope value
+  }
 
-  // Effect to update formData when permission or mode changes
-  useState(() => {
+  const [formData, setFormData] = useState<Omit<UserPermission, "id"> & { id?: string }>(permission || initialFormData)
+
+  useEffect(() => {
     if (mode === "edit" && permission) {
       setFormData(permission)
     } else if (mode === "create") {
       setFormData({
-        id: "",
-        userName: "",
-        userEmail: "",
+        ...initialFormData,
         userId: "",
         agent: agents.find((agent) => agent.name.trim() !== "")?.name || "",
-        catchup: "daily",
-        scope: "allowed",
       })
     }
   }, [permission, mode, agents])
 
-  const handleInputChange = (field: keyof UserPermission, value: string) => {
+  const handleInputChange = (field: keyof Omit<UserPermission, "id">, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleSubmit = () => {
-    onSave(formData)
+    const submissionData: UserPermission = {
+      id: formData.id || Date.now().toString(),
+      userName: formData.userName,
+      userEmail: formData.userEmail,
+      userId: mode === "create" ? formData.userId || `U-NEW-${Date.now().toString().slice(-4)}` : formData.userId,
+      agent: formData.agent,
+      catchup: formData.catchup,
+      scope: formData.scope as UserPermission["scope"], // Ensure type correctness
+    }
+    onSave(submissionData)
   }
 
   return (
@@ -288,10 +308,28 @@ function UserPermissionDialog({ open, onOpenChange, permission, onSave, mode, ag
               onChange={(e) => handleInputChange("userEmail", e.target.value)}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="userId">User ID</Label>
-            <Input id="userId" value={formData.userId} onChange={(e) => handleInputChange("userId", e.target.value)} />
-          </div>
+          {mode === "edit" && (
+            <div className="space-y-2">
+              <Label htmlFor="userId">User ID</Label>
+              <Input
+                id="userId"
+                value={formData.userId}
+                onChange={(e) => handleInputChange("userId", e.target.value)}
+                disabled // User ID is not editable after creation in this mock
+              />
+            </div>
+          )}
+          {mode === "create" && (
+            <div className="space-y-2">
+              <Label htmlFor="userId">User ID (Optional)</Label>
+              <Input
+                id="userId"
+                value={formData.userId}
+                onChange={(e) => handleInputChange("userId", e.target.value)}
+                placeholder="Auto-generated if empty"
+              />
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="agent">Agent</Label>
             <Select value={formData.agent} onValueChange={(value) => handleInputChange("agent", value)}>
@@ -313,13 +351,14 @@ function UserPermissionDialog({ open, onOpenChange, permission, onSave, mode, ag
             <Label htmlFor="catchup">Catchup</Label>
             <Select value={formData.catchup} onValueChange={(value) => handleInputChange("catchup", value)}>
               <SelectTrigger>
-                <SelectValue placeholder={formData.catchup || "Select catchup"} />
+                <SelectValue placeholder="Select catchup type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="real-time">Real-time</SelectItem>
-                <SelectItem value="hourly">Hourly</SelectItem>
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
+                {catchupOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -330,14 +369,18 @@ function UserPermissionDialog({ open, onOpenChange, permission, onSave, mode, ag
               onValueChange={(value) => handleInputChange("scope", value as UserPermission["scope"])}
             >
               <SelectTrigger>
-                <SelectValue placeholder={formData.scope || "Select scope"} />
+                <SelectValue placeholder="Select scope" />
               </SelectTrigger>
               <SelectContent>
-                {scopeOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
+                {scopeOptions.map(
+                  (
+                    opt, // Using updated scopeOptions
+                  ) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
           </div>

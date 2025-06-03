@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -24,7 +24,7 @@ interface ChannelPermission {
   channelId: string
   agent: string
   catchup: string
-  scope: "custom" | "allowed" | "not_allowed"
+  scope: "Browser Web" | "Catch up" | "Look up" // Updated scope type
 }
 
 const mockChannelData: ChannelPermission[] = [
@@ -34,15 +34,15 @@ const mockChannelData: ChannelPermission[] = [
     channelId: "C012AB3CD",
     agent: "GoTeddy",
     catchup: "daily",
-    scope: "allowed",
+    scope: "Browser Web", // Updated mock data
   },
   {
     id: "2",
     channelName: "#dev-team",
     channelId: "C023BC4DE",
     agent: "CodeHelper",
-    catchup: "real-time",
-    scope: "custom",
+    catchup: "hourly",
+    scope: "Catch up", // Updated mock data
   },
   {
     id: "3",
@@ -50,7 +50,7 @@ const mockChannelData: ChannelPermission[] = [
     channelId: "C034CD5EF",
     agent: "LeadGenius",
     catchup: "weekly",
-    scope: "not_allowed",
+    scope: "Look up", // Updated mock data
   },
   {
     id: "4",
@@ -58,17 +58,24 @@ const mockChannelData: ChannelPermission[] = [
     channelId: "C045DE6FG",
     agent: "DataCruncher",
     catchup: "hourly",
-    scope: "allowed",
+    scope: "Browser Web", // Updated mock data
   },
 ]
 
+// Updated scope options
 const scopeOptions = [
-  { value: "custom", label: "Custom" },
-  { value: "allowed", label: "Allowed" },
-  { value: "not_allowed", label: "Not Allowed" },
+  { value: "Browser Web", label: "Browser Web" },
+  { value: "Catch up", label: "Catch up" },
+  { value: "Look up", label: "Look up" },
 ]
 
-const ALL_AGENTS_VALUE = "__ALL_AGENTS__" // Define a constant for "All Agents"
+const catchupOptions = [
+  { value: "hourly", label: "Hourly" },
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+]
+
+const ALL_AGENTS_VALUE = "__ALL_AGENTS__"
 
 interface ChannelPermissionsTableProps {
   agents: Agent[]
@@ -79,7 +86,7 @@ export function ChannelPermissionsTable({ agents }: ChannelPermissionsTableProps
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingPermission, setEditingPermission] = useState<ChannelPermission | null>(null)
   const [dialogMode, setDialogMode] = useState<"edit" | "create">("edit")
-  const [selectedAgent, setSelectedAgent] = useState<string>(ALL_AGENTS_VALUE) // Default to all agents
+  const [selectedAgent, setSelectedAgent] = useState<string>(ALL_AGENTS_VALUE)
   const [searchTermChannel, setSearchTermChannel] = useState("")
 
   const filteredData = useMemo(() => {
@@ -113,6 +120,19 @@ export function ChannelPermissionsTable({ agents }: ChannelPermissionsTableProps
 
   const handleDelete = (id: string) => {
     setData((prev) => prev.filter((item) => item.id !== id))
+  }
+
+  const getScopeBadgeStyle = (scope: ChannelPermission["scope"]) => {
+    switch (scope) {
+      case "Browser Web":
+        return "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200"
+      case "Catch up":
+        return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
+      case "Look up":
+        return "bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200"
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+    }
   }
 
   return (
@@ -168,13 +188,8 @@ export function ChannelPermissionsTable({ agents }: ChannelPermissionsTableProps
                 <TableCell>{item.agent}</TableCell>
                 <TableCell>{item.catchup}</TableCell>
                 <TableCell>
-                  <span
-                    className={`px-2 py-1 rounded text-xs font-medium
-                                      ${item.scope === "allowed" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : ""}
-                                      ${item.scope === "not_allowed" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" : ""}
-                                      ${item.scope === "custom" ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" : ""}`}
-                  >
-                    {scopeOptions.find((s) => s.value === item.scope)?.label}
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${getScopeBadgeStyle(item.scope)}`}>
+                    {item.scope}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -230,29 +245,23 @@ function ChannelPermissionDialog({
   mode,
   agents,
 }: ChannelPermissionDialogProps) {
-  const [formData, setFormData] = useState<ChannelPermission>(
-    permission || {
-      id: "",
-      channelName: "",
-      channelId: "",
-      agent: agents.find((agent) => agent.name.trim() !== "")?.name || "", // Default to first valid agent or empty
-      catchup: "daily",
-      scope: "allowed",
-    },
-  )
+  const initialFormData: ChannelPermission = {
+    id: "",
+    channelName: "",
+    channelId: "",
+    agent: agents.find((agent) => agent.name.trim() !== "")?.name || "",
+    catchup: "daily",
+    scope: "Browser Web", // Default to new scope value
+  }
+  const [formData, setFormData] = useState<ChannelPermission>(initialFormData)
 
-  // Effect to update formData when permission or mode changes
-  useState(() => {
+  useEffect(() => {
     if (mode === "edit" && permission) {
       setFormData(permission)
     } else if (mode === "create") {
       setFormData({
-        id: "",
-        channelName: "",
-        channelId: "",
+        ...initialFormData,
         agent: agents.find((agent) => agent.name.trim() !== "")?.name || "",
-        catchup: "daily",
-        scope: "allowed",
       })
     }
   }, [permission, mode, agents])
@@ -316,13 +325,14 @@ function ChannelPermissionDialog({
             <Label htmlFor="catchup">Catchup</Label>
             <Select value={formData.catchup} onValueChange={(value) => handleInputChange("catchup", value)}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select catchup type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="real-time">Real-time</SelectItem>
-                <SelectItem value="hourly">Hourly</SelectItem>
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
+                {catchupOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -336,11 +346,15 @@ function ChannelPermissionDialog({
                 <SelectValue placeholder="Select scope" />
               </SelectTrigger>
               <SelectContent>
-                {scopeOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
+                {scopeOptions.map(
+                  (
+                    opt, // Using updated scopeOptions
+                  ) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
           </div>

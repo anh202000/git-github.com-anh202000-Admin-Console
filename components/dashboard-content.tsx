@@ -22,7 +22,7 @@ export function DashboardContent({ activeItem, agents }: DashboardContentProps) 
           <div className="p-6">
             <Card>
               <CardHeader>
-                <CardTitle>Channel Permissions (Slack)</CardTitle>
+                <CardTitle>Channel Permissions</CardTitle>
                 <CardDescription>Manage Slack channel access to AI agents.</CardDescription>
               </CardHeader>
               <CardContent>
