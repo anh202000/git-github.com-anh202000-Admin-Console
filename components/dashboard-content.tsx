@@ -3,7 +3,6 @@
 import { ChannelPermissionsTable } from "@/components/channel-permissions-table";
 import { DashboardView, type Agent } from "@/components/dashboard-view"; // Import Agent type
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
@@ -34,49 +33,43 @@ export function DashboardContent({
       case "channel-permissions":
         return (
           <div className="p-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Channel Permissions</CardTitle>
-                <CardDescription>
-                  Manage Slack channel access to AI agents.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChannelPermissionsTable agents={agents} /> {/* Pass agents */}
-              </CardContent>
-            </Card>
+            <CardHeader className="px-0">
+              <CardTitle>Channel Permissions</CardTitle>
+              <CardDescription>
+                Manage Slack channel access to AI agents.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-0">
+              <ChannelPermissionsTable agents={agents} /> {/* Pass agents */}
+            </CardContent>
           </div>
         );
       case "user-permissions":
         return (
           <div className="p-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Permissions</CardTitle>
-                <CardDescription>
-                  Manage individual user access to AI agents.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <UserPermissionsTable agents={agents} /> {/* Pass agents */}
-              </CardContent>
-            </Card>
+            <CardHeader className="px-0">
+              <CardTitle>User Permissions</CardTitle>
+              <CardDescription>
+                Manage individual user access to AI agents.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-0">
+              <UserPermissionsTable agents={agents} /> {/* Pass agents */}
+            </CardContent>
           </div>
         );
       case "user-management":
         return (
           <div className="p-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>
-                  Manage platform users, roles, and overall status.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <UserManagement />
-              </CardContent>
-            </Card>
+            <CardHeader className="px-0">
+              <CardTitle>User Management</CardTitle>
+              <CardDescription>
+                Manage platform users, roles, and overall status.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-0">
+              <UserManagement />
+            </CardContent>
           </div>
         );
 
@@ -86,17 +79,15 @@ export function DashboardContent({
       case "web-user-permissions":
         return (
           <div className="p-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Permissions</CardTitle>
-                <CardDescription>
-                  Manage individual user access to AI agents.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <WebUserPermissionsTable agents={webAgents} /> {/* Pass agents */}
-              </CardContent>
-            </Card>
+            <CardHeader className="px-0">
+              <CardTitle>User Permissions</CardTitle>
+              <CardDescription>
+                Manage individual user access to AI agents.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-0">
+              <WebUserPermissionsTable agents={webAgents} /> {/* Pass agents */}
+            </CardContent>
           </div>
         );
       default:
